@@ -1,6 +1,22 @@
 package vixen
 
-func Provide(provider any) {
+import (
+	"reflect"
+	"sync"
+
+	"deedles.dev/vixen/internal/dag"
+)
+
+var (
+	providers  dag.DAG[provider]
+	providersm sync.Mutex
+)
+
+type provider struct {
+	f reflect.Value
+}
+
+func Provide(p any) {
 	panic("Not implemented.")
 }
 

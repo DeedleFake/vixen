@@ -14,24 +14,24 @@ var (
 // DAG is a directed, acyclic graph. A zero-value DAG is ready to use.
 //
 // A DAG is not safe for concurrent use.
-type DAG struct {
-	edges map[string][]string
-	roots set.Set[string]
+type DAG[Name comparable] struct {
+	edges map[Name][]Name
+	roots set.Set[Name]
 }
 
-func (dag *DAG) init() {
+func (dag *DAG[Name]) init() {
 	if dag.edges == nil {
-		dag.edges = make(map[string][]string)
+		dag.edges = make(map[Name][]Name)
 	}
 	if dag.roots == nil {
-		dag.roots = make(set.Set[string])
+		dag.roots = make(set.Set[Name])
 	}
 }
 
-func (dag *DAG) recalcroots() {
+func (dag *DAG[Name]) recalcroots() {
 	clear(dag.roots)
 
-	nonroots := make(set.Set[string], len(dag.edges))
+	nonroots := make(set.Set[Name], len(dag.edges))
 	for _, to := range dag.edges {
 		for _, n := range to {
 			nonroots.Add(n)
@@ -45,16 +45,16 @@ func (dag *DAG) recalcroots() {
 	}
 }
 
-func (dag *DAG) cyclic() bool {
+func (dag *DAG[Name]) cyclic() bool {
 	if len(dag.roots) == 0 && len(dag.edges) > 0 {
 		return true
 	}
 
-	visited := make(set.Set[string], len(dag.edges))
+	visited := make(set.Set[Name], len(dag.edges))
 
 	for r := range dag.roots.All() {
 		var count int
-		check := func(n string) (bool, error) {
+		check := func(n Name) (bool, error) {
 			if n == r {
 				count++
 				if count > 1 {
@@ -67,7 +67,7 @@ func (dag *DAG) cyclic() bool {
 		}
 
 		clear(visited)
-		_, err := dag.traverse(r, func(string) bool { return true }, check)
+		_, err := dag.traverse(r, func(Name) bool { return true }, check)
 		if err != nil {
 			return true
 		}
@@ -76,7 +76,7 @@ func (dag *DAG) cyclic() bool {
 	return false
 }
 
-func (dag *DAG) traverse(cur string, yield func(string) bool, visited func(string) (bool, error)) (bool, error) {
+func (dag *DAG[Name]) traverse(cur Name, yield func(Name) bool, visited func(Name) (bool, error)) (bool, error) {
 	ok, err := visited(cur)
 	if err != nil {
 		return false, err
@@ -99,7 +99,7 @@ func (dag *DAG) traverse(cur string, yield func(string) bool, visited func(strin
 	return true, nil
 }
 
-func (dag *DAG) Add(name string, edges ...string) error {
+func (dag *DAG[Name]) Add(name Name, edges ...Name) error {
 	dag.init()
 	_, existed := dag.edges[name]
 
@@ -119,10 +119,10 @@ func (dag *DAG) Add(name string, edges ...string) error {
 
 // All returns an iterator that yields node names and values from dag
 // in the order implied by the direction of the graph.
-func (dag *DAG) All() iter.Seq[string] {
-	return func(yield func(string) bool) {
-		visited := make(set.Set[string], len(dag.edges))
-		check := func(n string) (bool, error) {
+func (dag *DAG[Name]) All() iter.Seq[Name] {
+	return func(yield func(Name) bool) {
+		visited := make(set.Set[Name], len(dag.edges))
+		check := func(n Name) (bool, error) {
 			defer visited.Add(n)
 			return !visited.Has(n), nil
 		}

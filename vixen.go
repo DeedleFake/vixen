@@ -9,8 +9,8 @@ import (
 
 var (
 	m         sync.Mutex
-	deps      dag.DAG
-	providers map[string]provider
+	deps      dag.DAG[reflect.Type]
+	providers map[reflect.Type]provider
 )
 
 type provider struct {

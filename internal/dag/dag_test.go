@@ -8,7 +8,7 @@ import (
 )
 
 func TestDAG(t *testing.T) {
-	var g dag.DAG
+	var g dag.DAG[string]
 	err := g.Add("one", "two", "three")
 	if err != nil {
 		t.Fatal(err)

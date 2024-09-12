@@ -40,21 +40,6 @@ func (dag *DAG[Name]) recalcroots() {
 	}
 }
 
-func (dag *DAG[Name]) Add(from, to Name) {
-	if dag.edges == nil {
-		dag.edges = make(map[Name]set.Set[Name])
-	}
-
-	edges := dag.edges[from]
-	if edges == nil {
-		edges = make(set.Set[Name])
-		dag.edges[from] = edges
-	}
-
-	edges.Add(to)
-	dag.roots = nil
-}
-
 func (dag *DAG[Name]) nodes() iter.Seq[Name] {
 	return func(yield func(Name) bool) {
 		visited := make(set.Set[Name], len(dag.edges))
@@ -139,4 +124,22 @@ func (dag *DAG[Name]) Topological() ([]Name, error) {
 	}
 	slices.Reverse(nodes)
 	return nodes, nil
+}
+
+// Add adds an edge to the graph. Nodes do not need to be added
+// directly. Adding an edge is equivalent to adding both nodes
+// involved to the graph if they are not already in it.
+func (dag *DAG[Name]) Add(from, to Name) {
+	if dag.edges == nil {
+		dag.edges = make(map[Name]set.Set[Name])
+	}
+
+	edges := dag.edges[from]
+	if edges == nil {
+		edges = make(set.Set[Name])
+		dag.edges[from] = edges
+	}
+
+	edges.Add(to)
+	dag.roots = nil
 }

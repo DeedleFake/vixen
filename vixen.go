@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	providers  dag.DAG[provider]
-	providersm sync.Mutex
+	m         sync.Mutex
+	deps      dag.DAG
+	providers map[string]provider
 )
 
 type provider struct {

@@ -9,22 +9,20 @@ import (
 
 func TestDAG(t *testing.T) {
 	var g dag.DAG[string]
-	err := g.Add("one", "two", "three")
+	g.Add("one", "two")
+	g.Add("one", "three")
+	g.Add("two", "three")
+
+	nodes, err := g.Topological()
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = g.Add("two", "three")
-	if err != nil {
-		t.Fatal(err)
+	if !slices.Equal(nodes, []string{"one", "two", "three"}) {
+		t.Fatal(nodes)
 	}
-	err = g.Add("three")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if s := slices.Collect(g.All()); !slices.Equal(s, []string{"one", "two", "three"}) {
-		t.Fatal(s)
-	}
-	err = g.Add("three", "one")
+
+	g.Add("three", "one")
+	_, err = g.Topological()
 	if err != dag.ErrCyclic {
 		t.Fatal(err)
 	}
